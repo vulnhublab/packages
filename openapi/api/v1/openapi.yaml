@@ -1,9 +1,9 @@
 openapi: 3.0.1
 info:
-  title: "KhulnaSoft: Packages"
+  title: "Khulnasoft: Packages"
   description: "An open API service providing package, version and dependency metadata of many open source software ecosystems and registries."
   contact:
-    name: KhulnaSoft
+    name: Khulnasoft
     email: support@khulnasoft.com
     url: https://khulnasoft.com 
   version: 1.1.0

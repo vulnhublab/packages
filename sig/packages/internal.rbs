@@ -1,7 +1,0 @@
-module Packages
-  module Internal
-    extend Packages::Internal::Util::SorbetRuntimeSupport
-
-    OMIT: Object
-  end
-end

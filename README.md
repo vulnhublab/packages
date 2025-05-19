@@ -1,202 +1,48 @@
-# Packages Ruby API library
+# [Khulnasoft: Packages](https://packages.khulnasoft.com)
 
-The Packages Ruby library provides convenient access to the Packages REST API from any Ruby 3.2.0+ application. It ships with comprehensive types & docstrings in Yard, RBS, and RBI – [see below](https://github.com/stainless-sdks/packages-ruby#Sorbet) for usage with Sorbet. The standard library's `net/http` is used as the HTTP transport, with connection pooling via the `connection_pool` gem.
+An open API service providing package, version and dependency metadata of many open source software ecosystems and registries.
 
-It is generated with [Stainless](https://www.stainless.com/).
+This project is part of [Khulnasoft](https://khulnasoft.com): Tools and open datasets to support, sustain, and secure critical digital infrastructure.
 
-## Documentation
+## API
 
-Documentation for releases of this gem can be found [on RubyDoc](https://gemdocs.org/gems/packages).
+Documentation for the REST API is available here: [https://packages.khulnasoft.com/docs](https://packages.khulnasoft.com/docs)
 
-The REST API documentation can be found on [khulnasoft.com](https://khulnasoft.com).
+The default rate limit for the API is 5000/req per hour based on your IP address, get in contact if you need to to increase your rate limit.
 
-## Installation
+## Development
 
-To use this gem, install via Bundler by adding the following to your application's `Gemfile`:
+For development and deployment documentation, check out [DEVELOPMENT.md](DEVELOPMENT.md)
 
-```ruby
-gem "packages", "~> 0.0.1.pre.alpha.0"
-```
+## Contribute
 
-## Usage
+Please do! The source code is hosted at [GitHub](https://github.com/khulnasoft-lab/packages). If you want something, [open an issue](https://github.com/khulnasoft-lab/packages/issues/new) or a pull request.
 
-```ruby
-require "bundler/setup"
-require "packages"
+If you need want to contribute but don't know where to start, take a look at the issues tagged as ["Help Wanted"](https://github.com/khulnasoft-lab/packages/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-packages = Packages::Client.new(
-  api_key: ENV["PACKAGES_API_KEY"] # This is the default and can be omitted
-)
+You can also help triage issues. This can include reproducing bug reports, or asking for vital information such as version numbers or reproduction instructions. 
 
-package_with_registries = packages.packages.lookup
+Finally, this is an open source project. If you would like to become a maintainer, we will consider adding you if you contribute frequently to the project. Feel free to ask.
 
-puts(package_with_registries)
-```
+For other updates, follow the project on Twitter: [@ecosyste_ms](https://twitter.com/ecosyste_ms).
 
-### Handling errors
+### Note on Patches/Pull Requests
 
-When the library is unable to connect to the API, or if the API returns a non-success status code (i.e., 4xx or 5xx response), a subclass of `Packages::Errors::APIError` will be thrown:
+ * Fork the project.
+ * Make your feature addition or bug fix.
+ * Add tests for it. This is important so we don't break it in a future version unintentionally.
+ * Send a pull request. Bonus points for topic branches.
 
-```ruby
-begin
-  package = packages.packages.lookup
-rescue Packages::Errors::APIConnectionError => e
-  puts("The server could not be reached")
-  puts(e.cause)  # an underlying Exception, likely raised within `net/http`
-rescue Packages::Errors::RateLimitError => e
-  puts("A 429 status code was received; we should back off a bit.")
-rescue Packages::Errors::APIStatusError => e
-  puts("Another non-200-range status code was received")
-  puts(e.status)
-end
-```
+### Vulnerability disclosure
 
-Error codes are as follows:
+We support and encourage security research on Khulnasoft under the terms of our [vulnerability disclosure policy](https://github.com/khulnasoft-lab/packages/security/policy).
 
-| Cause            | Error Type                 |
-| ---------------- | -------------------------- |
-| HTTP 400         | `BadRequestError`          |
-| HTTP 401         | `AuthenticationError`      |
-| HTTP 403         | `PermissionDeniedError`    |
-| HTTP 404         | `NotFoundError`            |
-| HTTP 409         | `ConflictError`            |
-| HTTP 422         | `UnprocessableEntityError` |
-| HTTP 429         | `RateLimitError`           |
-| HTTP >= 500      | `InternalServerError`      |
-| Other HTTP error | `APIStatusError`           |
-| Timeout          | `APITimeoutError`          |
-| Network error    | `APIConnectionError`       |
+### Code of Conduct
 
-### Retries
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/khulnasoft-lab/.github/blob/main/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
-Certain errors will be automatically retried 2 times by default, with a short exponential backoff.
+## Copyright
 
-Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict, 429 Rate Limit, >=500 Internal errors, and timeouts will all be retried by default.
+Code is licensed under [GNU Affero License](LICENSE) © 2022 [Andrew Nesbitt](https://github.com/andrew).
 
-You can use the `max_retries` option to configure or disable this:
-
-```ruby
-# Configure the default for all requests:
-packages = Packages::Client.new(
-  max_retries: 0 # default is 2
-)
-
-# Or, configure per-request:
-packages.packages.lookup(request_options: {max_retries: 5})
-```
-
-### Timeouts
-
-By default, requests will time out after 60 seconds. You can use the timeout option to configure or disable this:
-
-```ruby
-# Configure the default for all requests:
-packages = Packages::Client.new(
-  timeout: nil # default is 60
-)
-
-# Or, configure per-request:
-packages.packages.lookup(request_options: {timeout: 5})
-```
-
-On timeout, `Packages::Errors::APITimeoutError` is raised.
-
-Note that requests that time out are retried by default.
-
-## Advanced concepts
-
-### BaseModel
-
-All parameter and response objects inherit from `Packages::Internal::Type::BaseModel`, which provides several conveniences, including:
-
-1. All fields, including unknown ones, are accessible with `obj[:prop]` syntax, and can be destructured with `obj => {prop: prop}` or pattern-matching syntax.
-
-2. Structural equivalence for equality; if two API calls return the same values, comparing the responses with == will return true.
-
-3. Both instances and the classes themselves can be pretty-printed.
-
-4. Helpers such as `#to_h`, `#deep_to_h`, `#to_json`, and `#to_yaml`.
-
-### Making custom or undocumented requests
-
-#### Undocumented properties
-
-You can send undocumented parameters to any endpoint, and read undocumented response properties, like so:
-
-Note: the `extra_` parameters of the same name overrides the documented parameters.
-
-```ruby
-package_with_registries =
-  packages.packages.lookup(
-    request_options: {
-      extra_query: {my_query_parameter: value},
-      extra_body: {my_body_parameter: value},
-      extra_headers: {"my-header": value}
-    }
-  )
-
-puts(package_with_registries[:my_undocumented_property])
-```
-
-#### Undocumented request params
-
-If you want to explicitly send an extra param, you can do so with the `extra_query`, `extra_body`, and `extra_headers` under the `request_options:` parameter when making a request as seen in examples above.
-
-#### Undocumented endpoints
-
-To make requests to undocumented endpoints while retaining the benefit of auth, retries, and so on, you can make requests using `client.request`, like so:
-
-```ruby
-response = client.request(
-  method: :post,
-  path: '/undocumented/endpoint',
-  query: {"dog": "woof"},
-  headers: {"useful-header": "interesting-value"},
-  body: {"hello": "world"}
-)
-```
-
-### Concurrency & connection pooling
-
-The `Packages::Client` instances are threadsafe, but only are fork-safe when there are no in-flight HTTP requests.
-
-Each instance of `Packages::Client` has its own HTTP connection pool with a default size of 99. As such, we recommend instantiating the client once per application in most settings.
-
-When all available connections from the pool are checked out, requests wait for a new connection to become available, with queue time counting towards the request timeout.
-
-Unless otherwise specified, other classes in the SDK do not have locks protecting their underlying data structure.
-
-## Sorbet
-
-This library provides comprehensive [RBI](https://sorbet.org/docs/rbi) definitions, and has no dependency on sorbet-runtime.
-
-You can provide typesafe request parameters like so:
-
-```ruby
-packages.packages.lookup
-```
-
-Or, equivalently:
-
-```ruby
-# Hashes work, but are not typesafe:
-packages.packages.lookup
-
-# You can also splat a full Params class:
-params = Packages::PackageLookupParams.new
-packages.packages.lookup(**params)
-```
-
-## Versioning
-
-This package follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions. As the library is in initial development and has a major version of `0`, APIs may change at any time.
-
-This package considers improvements to the (non-runtime) `*.rbi` and `*.rbs` type definitions to be non-breaking changes.
-
-## Requirements
-
-Ruby 3.2.0 or higher.
-
-## Contributing
-
-See [the contributing documentation](https://github.com/stainless-sdks/packages-ruby/tree/main/CONTRIBUTING.md).
+Data from the API is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
