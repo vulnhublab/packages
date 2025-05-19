@@ -24,7 +24,7 @@ You can also help triage issues. This can include reproducing bug reports, or as
 
 Finally, this is an open source project. If you would like to become a maintainer, we will consider adding you if you contribute frequently to the project. Feel free to ask.
 
-For other updates, follow the project on Twitter: [@ecosyste_ms](https://twitter.com/ecosyste_ms).
+For other updates, follow the project on Twitter: [@khulnasoft](https://twitter.com/khulnasoft).
 
 ### Note on Patches/Pull Requests
 
