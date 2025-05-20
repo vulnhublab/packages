@@ -1,4 +1,3 @@
-
 require "test_helper"
 
 class MavenTest < ActiveSupport::TestCase
@@ -72,6 +71,15 @@ class MavenTest < ActiveSupport::TestCase
   test 'recently_updated_package_names' do
     stub_request(:get, "https://maven.libraries.io/mavenCentral/recent")
       .to_return({ status: 200, body: file_fixture('maven/recent') })
+    stub_request(:post, "https://central.sonatype.com/api/internal/browse/components?repository=maven-central")
+      .with(
+        body: "{\"size\":20,\"sortField\":\"publishedDate\",\"sortDirection\":\"desc\"}",
+        headers: {
+          'Content-Type'=>'application/json',
+          'Expect'=>'',
+          'User-Agent'=>'packages.khulnasoft.com (packages@khulnasoft.com)'
+        })
+      .to_return({ status: 200, body: "{\"components\":[]}" })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 100
   end

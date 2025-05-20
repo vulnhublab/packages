@@ -24,12 +24,7 @@ module Ecosystem
 
     def registry_url(package, version = nil)
       group_id, artifact_id = *package.name.split(':', 2)
-
-      if @registry_url == "https://repo.maven.apache.org/maven2" || @registry_url == "https://repo1.maven.org/maven2"
-        "https://central.sonatype.com/artifact/#{group_id}/#{artifact_id}/#{version}"
-      else
-        "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version.present? ? version.number + '/' : ''}"
-      end
+      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version.present? ? version.number + '/' : ''}"
     end
 
     def documentation_url(package, version = nil)
