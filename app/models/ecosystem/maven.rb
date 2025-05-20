@@ -47,7 +47,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      (recently_updated_package_names_from_sonatype + recently_updated_package_names_from_libraries_io).uniq
+      (recently_updated_package_names_from_sonatype + recently_updated_package_names_from_libraries_io).uniq.first(20)
     end
 
     def recently_updated_package_names_from_sonatype
