@@ -5,10 +5,10 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - given-names: Andrew
-    family-names: Nesbitt
-    email: andrew@khulnasoft.com
-    orcid: 'https://orcid.org/0009-0007-2710-1118'
+  - given-names: Md
+    family-names: Sulaiman
+    email: dev.sulaiman@icloud.com
+    orcid: 'https://orcid.org/0009-0008-3833-7705'
 repository-code: 'https://github.com/khulnasoft-lab/packages'
 url: 'https://packages.khulnasoft.com'
 abstract: >-
