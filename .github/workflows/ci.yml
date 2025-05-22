@@ -29,11 +29,63 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependent libraries
-        run: sudo apt-get install libpq-dev
+        run: sudo apt-get install libpq-dev postgresql-client
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+
+      - name: Debug Environment Variables
+        env:
+          RAILS_ENV: test
+          POSTGRES_DB: packages_test
+          POSTGRES_USER: packages
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+        run: |
+          echo "Checking environment variables:"
+          printenv | grep POSTGRES
+          echo "Checking database connection:"
+          PGPASSWORD=postgres psql -h localhost -U packages -d packages_test -c "\l"
+          echo "Checking database user permissions:"
+          PGPASSWORD=postgres psql -h localhost -U packages -d packages_test -c "\du"
+          echo "Checking database exists:"
+          PGPASSWORD=postgres psql -h localhost -U packages -l
+          echo "Checking database configuration:"
+          cat config/database.yml
+
+      - name: Debug Rails Database Connection
+        env:
+          RAILS_ENV: test
+          POSTGRES_DB: packages_test
+          POSTGRES_USER: packages
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+        run: |
+          echo "Checking Rails database configuration:"
+          bundle exec rails runner "puts ActiveRecord::Base.connection_config"
+          echo "Testing Rails database connection:"
+          bundle exec rails runner "puts ActiveRecord::Base.connection.active?"
+          echo "Checking database adapter:"
+          bundle exec rails runner "puts ActiveRecord::Base.connection.adapter_name"
+
+      - name: Prepare Database
+        env:
+          RAILS_ENV: test
+          POSTGRES_DB: packages_test
+          POSTGRES_USER: packages
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+        run: |
+          echo "Creating database..."
+          bundle exec rake db:create
+          echo "Loading schema..."
+          bundle exec rake db:schema:load
+          echo "Verifying database setup..."
+          bundle exec rake db:version
 
       - name: Run tests
         env:
@@ -43,4 +95,4 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_HOST: localhost
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
-        run: bundle exec rake db:schema:load test
+        run: bundle exec rake test
