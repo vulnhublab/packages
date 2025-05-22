@@ -47,13 +47,15 @@ jobs:
           echo "Checking environment variables:"
           printenv | grep POSTGRES
           echo "Checking database connection:"
-          PGPASSWORD=postgres psql -h localhost -U packages -d packages_test -c "\l"
+          PGPASSWORD=postgres psql -h localhost -U packages -d packages_test -c "SELECT datname, datcollate, datctype, encoding, datistemplate FROM pg_database WHERE datname = 'packages_test'"
           echo "Checking database user permissions:"
           PGPASSWORD=postgres psql -h localhost -U packages -d packages_test -c "\du"
           echo "Checking database exists:"
           PGPASSWORD=postgres psql -h localhost -U packages -l
           echo "Checking database configuration:"
           cat config/database.yml
+          echo "Checking PostgreSQL version:"
+          PGPASSWORD=postgres psql -h localhost -U packages -d packages_test -c "SELECT version()"
 
       - name: Debug Rails Database Connection
         env:
